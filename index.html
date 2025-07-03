@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema Solar Avançado</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #000 0%, #0a0a0a 100%);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      z-index: 10;
+    }
+
+    #info h1 {
+      font-size: 20px;
+      margin: 0 0 5px 0;
+    }
+
+    #tooltip {
+      position: absolute;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px;
+      border-radius: 5px;
+      pointer-events: none;
+      font-size: 14px;
+      display: none;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h1>Sistema Solar</h1>
+    <p>Clique em um planeta para ver o nome</p>
+  </div>
+  <div id="tooltip"></div>
+  <canvas id="solarCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('solarCanvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('tooltip');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    const sun = {
+      x: centerX,
+      y: centerY,
+      radius: 60,
+      color: "yellow"
+    };
+
+    const planets = [
+      { name: "Mercúrio", distance: 80, radius: 5, speed: 0.03, angle: 0, color: "#bbb" },
+      { name: "Vênus",    distance: 120, radius: 9, speed: 0.024, angle: 0, color: "#c2b280" },
+      { name: "Terra",    distance: 170, radius: 10, speed: 0.02, angle: 0, color: "#3fa9f5" },
+      { name: "Marte",    distance: 220, radius: 8, speed: 0.017, angle: 0, color: "#c1440e" },
+      { name: "Júpiter",  distance: 300, radius: 20, speed: 0.009, angle: 0, color: "#d2b48c" },
+      { name: "Saturno",  distance: 380, radius: 17, speed: 0.007, angle: 0, color: "#f4e2a0" },
+      { name: "Urano",    distance: 440, radius: 13, speed: 0.005, angle: 0, color: "#6cd3e3" },
+      { name: "Netuno",   distance: 500, radius: 13, speed: 0.004, angle: 0, color: "#4973a2" }
+    ];
+
+    function drawSun() {
+      ctx.beginPath();
+      ctx.arc(sun.x, sun.y, sun.radius, 0, Math.PI * 2);
+      ctx.fillStyle = sun.color;
+      ctx.shadowColor = "orange";
+      ctx.shadowBlur = 50;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawOrbit(planet) {
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, planet.distance, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.stroke();
+    }
+
+    function drawPlanet(planet) {
+      const x = centerX + planet.distance * Math.cos(planet.angle);
+      const y = centerY + planet.distance * Math.sin(planet.angle);
+
+      ctx.beginPath();
+      ctx.arc(x, y, planet.radius, 0, Math.PI * 2);
+      ctx.fillStyle = planet.color;
+      ctx.fill();
+
+      planet.x = x;
+      planet.y = y;
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawSun();
+
+      for (let planet of planets) {
+        drawOrbit(planet);
+        drawPlanet(planet);
+        planet.angle += planet.speed;
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      for (let planet of planets) {
+        const dx = mouseX - planet.x;
+        const dy = mouseY - planet.y;
+        if (Math.sqrt(dx * dx + dy * dy) < planet.radius + 5) {
+          tooltip.style.left = `${mouseX + 10}px`;
+          tooltip.style.top = `${mouseY - 10}px`;
+          tooltip.textContent = planet.name;
+          tooltip.style.display = "block";
+          setTimeout(() => tooltip.style.display = "none", 2000);
+          break;
+        }
+      }
+    });
+
+    animate();
+  </script>
+</body>
+</html>
